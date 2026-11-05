@@ -1,0 +1,386 @@
+{
+  "schema_version": 1,
+  "name": "naira-everyday-money-eval",
+  "tasks": [
+    {
+      "id": "ear_instalment_loan",
+      "title": "True yearly cost of a weekly-instalment loan",
+      "domain": "finance",
+      "family": "informal_credit",
+      "difficulty": "hard",
+      "prompts": {
+        "plain": "A market trader borrows ₦60,000 from a cooperative. She repays ₦9,000 at the end of each week for 8 weeks.\n\nWhat is the effective annual interest rate on this loan? Find the weekly interest rate that makes the eight ₦9,000 repayments (each paid at the end of its week) exactly worth ₦60,000 today, then compound that weekly rate over 52 weeks.",
+        "informal": "Abeg help me check this loan. Cooperative people give me ₦60,000. I go pay ₦9,000 at the end of every week for 8 weeks.\n\nWetin be the real interest rate for one year? Find the weekly interest rate wey go make the eight ₦9,000 payments (each one at the end of its week) worth exactly ₦60,000 today, then compound that weekly rate over 52 weeks."
+      },
+      "answer_hint": "Give the effective annual rate as a percentage figure, for example 125.4 for 125.4%.",
+      "grader": {
+        "type": "numeric",
+        "answer": 766.309121,
+        "tolerance": {
+          "rel": 0.02
+        }
+      },
+      "answer_key": {
+        "value": 766.309121,
+        "working": [
+          "Weekly rate r solves 60,000 = 9,000 x (1 - (1+r)^-8) / r, giving r = 4.2395% per week.",
+          "Effective annual rate = (1+r)^52 - 1 = 766.3%."
+        ]
+      },
+      "traps": [
+        {
+          "name": "flat_rate_annualised",
+          "wrong_answer": 130.0,
+          "description": "Treats the interest as flat: 20% over 8 weeks, scaled to 52 weeks."
+        },
+        {
+          "name": "nominal_apr_not_compounded",
+          "wrong_answer": 220.452145,
+          "description": "Finds the right weekly rate but multiplies by 52 instead of compounding."
+        },
+        {
+          "name": "total_interest_as_annual",
+          "wrong_answer": 20.0,
+          "description": "Reports the 20% total interest over the loan term as the annual rate."
+        }
+      ],
+      "expected_failure": "HYPOTHESIS (verify in the pilot): models report the flat or nominal rate, or iterate the weekly rate imprecisely. Because compounding over 52 weeks multiplies small errors, a 'close' weekly rate still misses the 2% tolerance.",
+      "notes": "Real-world relevance: cooperative, thrift and app loans are often quoted per week or as a flat charge."
+    },
+    {
+      "id": "bank_charges_schedule",
+      "title": "Monthly bank charges under a stated fee schedule",
+      "domain": "finance",
+      "family": "rule_following",
+      "difficulty": "medium",
+      "prompts": {
+        "plain": "Use only the rules below. They are for this exercise and are not any real bank's rules.\n\nBank X rules for transfers:\n1. Transfer fee, charged on each transfer to another bank: ₦10 if the amount is up to and including ₦5,000; ₦25 if the amount is above ₦5,000 and up to and including ₦50,000; ₦50 if the amount is above ₦50,000.\n2. Stamp duty: ₦50 on each transfer to another bank of ₦10,000 or more.\n3. VAT: 7.5% of the transfer fee only. There is no VAT on stamp duty.\n4. Transfers to another account at the same bank are free: no fee, no stamp duty, no VAT.\n5. A failed transfer that is reversed is not charged at all.\n6. Card payments and airtime purchases are not transfers, so none of the above applies to them.\n\nNgozi's activity this month:\n- ₦4,500 to another bank\n- ₦5,000 to another bank\n- ₦5,001 to another bank\n- ₦10,000 to another bank\n- ₦9,999 to another bank\n- ₦50,000 to another bank\n- ₦50,001 to another bank\n- ₦120,000 to another bank\n- ₦2,000 to another bank\n- ₦30,000 to another account at Bank X\n- ₦15,000 to another bank (failed and reversed)\n- ₦8,000 card payment\n\nWhat is the total in naira that Bank X charges Ngozi this month (transfer fees + stamp duty + VAT)?",
+        "informal": "Abeg help Ngozi calculate wetin her bank (Bank X) charge her this month. Use only the rules below. Dem dey for this exercise, no be real bank rules.\n\nBank X rules for transfers:\n1. Transfer fee, charged on each transfer to another bank: ₦10 if the amount is up to and including ₦5,000; ₦25 if the amount is above ₦5,000 and up to and including ₦50,000; ₦50 if the amount is above ₦50,000.\n2. Stamp duty: ₦50 on each transfer to another bank of ₦10,000 or more.\n3. VAT: 7.5% of the transfer fee only. There is no VAT on stamp duty.\n4. Transfers to another account at the same bank are free: no fee, no stamp duty, no VAT.\n5. A failed transfer that is reversed is not charged at all.\n6. Card payments and airtime purchases are not transfers, so none of the above applies to them.\n\nNgozi's activity this month:\n- ₦4,500 to another bank\n- ₦5,000 to another bank\n- ₦5,001 to another bank\n- ₦10,000 to another bank\n- ₦9,999 to another bank\n- ₦50,000 to another bank\n- ₦50,001 to another bank\n- ₦120,000 to another bank\n- ₦2,000 to another bank\n- ₦30,000 to another account at Bank X\n- ₦15,000 to another bank (failed and reversed)\n- ₦8,000 card payment\n\nHow much be the total wey Bank X charge Ngozi this month (transfer fees + stamp duty + VAT)?"
+      },
+      "answer_hint": "Give the total in naira as a plain number, for example 123.45 for ₦123.45.",
+      "grader": {
+        "type": "numeric",
+        "answer": 447.25,
+        "tolerance": {
+          "abs": 0.005
+        }
+      },
+      "answer_key": {
+        "value": 447.25,
+        "working": [
+          "Chargeable: the nine transfers to another bank. Exempt: own-bank transfer, reversed failed transfer, card payment.",
+          "Fees: 10+10+25+25+25+25+50+50+10 = 230. VAT = 7.5% x 230 = 17.25.",
+          "Stamp duty on 10,000, 50,000, 50,001, 120,000 (not 9,999): 4 x 50 = 200.",
+          "Total = 230 + 17.25 + 200 = 447.25."
+        ]
+      },
+      "traps": [
+        {
+          "name": "vat_on_stamp_duty",
+          "wrong_answer": 462.25,
+          "description": "Applies VAT to stamp duty as well as the fee."
+        },
+        {
+          "name": "stamp_boundary_strict",
+          "wrong_answer": 397.25,
+          "description": "Reads 'of 10,000 or more' as 'above 10,000'."
+        },
+        {
+          "name": "fee_band_boundary",
+          "wrong_answer": 490.25,
+          "description": "Reads 'up to and including' as 'below' at 5,000 and 50,000."
+        },
+        {
+          "name": "charges_exempt_items",
+          "wrong_answer": 627.875,
+          "description": "Charges the own-bank transfer, the reversed transfer and the card payment."
+        },
+        {
+          "name": "forgets_vat",
+          "wrong_answer": 430.0,
+          "description": "Leaves out VAT."
+        }
+      ],
+      "expected_failure": "HYPOTHESIS (verify in the pilot): this may be close to a control. Twelve items with seven boundary and exemption rules give many chances for one slip, but strong models may get it right. If every model passes, keep it as a control or cut it.",
+      "notes": "Fictional schedule, so the key never goes stale. Boundary amounts (5,000 / 5,001 / 9,999 / 10,000 / 50,000 / 50,001) are deliberate."
+    },
+    {
+      "id": "landed_cost_two_rates",
+      "title": "Import landed cost with two exchange rates",
+      "domain": "finance",
+      "family": "rule_following",
+      "difficulty": "hard",
+      "prompts": {
+        "plain": "Adaeze imports a batch of sewing machines. Use only these rules, which are for this exercise.\n\n- Supplier invoice (FOB): USD 2,400. Freight: USD 350. Insurance: USD 50. All three are paid in dollars, and Adaeze buys the dollars at ₦1,620 per USD.\n- Customs converts dollar values to naira at its own fixed rate of ₦1,500 per USD. Customs value (CIF) = FOB + freight + insurance, converted at the customs rate.\n- Import duty = 20% of the CIF value.\n- Surcharge = 7% of the import duty amount.\n- Port levy = 4% of the CIF value.\n- VAT = 7.5% of (CIF + duty + surcharge + port levy).\n- Clearing agent fee = 1.5% of the CIF value (no VAT on this fee).\n- Local haulage to her shop: ₦85,000.\n\nHow much naira does Adaeze spend in total to get the machines to her shop? Count the dollars she buys (at her rate) plus every naira charge listed above.",
+        "informal": "Abeg help Adaeze calculate how much she go spend for her import. She wan bring sewing machines come. Use only these rules, dem dey for this exercise.\n\n- Supplier invoice (FOB): USD 2,400. Freight: USD 350. Insurance: USD 50. All three are paid in dollars, and Adaeze buys the dollars at ₦1,620 per USD.\n- Customs converts dollar values to naira at its own fixed rate of ₦1,500 per USD. Customs value (CIF) = FOB + freight + insurance, converted at the customs rate.\n- Import duty = 20% of the CIF value.\n- Surcharge = 7% of the import duty amount.\n- Port levy = 4% of the CIF value.\n- VAT = 7.5% of (CIF + duty + surcharge + port levy).\n- Clearing agent fee = 1.5% of the CIF value (no VAT on this fee).\n- Local haulage to her shop: ₦85,000.\n\nHow much naira Adaeze go spend in total to get the machines reach her shop? Count the dollars she buys (at her rate) plus every naira charge listed above."
+      },
+      "answer_hint": "Give the total in naira as a plain number, for example 1234567.",
+      "grader": {
+        "type": "numeric",
+        "answer": 6145810.0,
+        "tolerance": {
+          "rel": 0.0005
+        }
+      },
+      "answer_key": {
+        "value": 6145810.0,
+        "working": [
+          "USD total = 2,400 + 350 + 50 = 2,800. Dollars bought at 1,620 = ₦4,536,000.",
+          "CIF (customs rate 1,500) = ₦4,200,000. Duty 20% = ₦840,000.",
+          "Surcharge 7% of duty = ₦58,800. Port levy 4% of CIF = ₦168,000.",
+          "VAT = 7.5% x (CIF + duty + surcharge + levy) = 7.5% x 5,266,800 = 395,010.",
+          "Agent 1.5% of CIF = 63,000. Haulage 85,000. Total = ₦6,145,810."
+        ]
+      },
+      "traps": [
+        {
+          "name": "market_rate_used_for_customs",
+          "wrong_answer": 6267794.8,
+          "description": "Values CIF at her 1,620 rate instead of the customs 1,500 rate."
+        },
+        {
+          "name": "vat_base_excludes_duty_and_levies",
+          "wrong_answer": 6065800.0,
+          "description": "Charges VAT on CIF only."
+        },
+        {
+          "name": "surcharge_on_cif",
+          "wrong_answer": 6398650.0,
+          "description": "Takes 7% of CIF instead of 7% of the duty amount."
+        },
+        {
+          "name": "supplier_paid_at_customs_rate",
+          "wrong_answer": 5809810.0,
+          "description": "Counts the dollars she buys at the customs rate instead of what she actually pays."
+        }
+      ],
+      "expected_failure": "HYPOTHESIS (verify in the pilot): the two exchange rates (what she pays vs what customs assumes) and the stacked VAT base invite a wrong base somewhere. Expect the failures to be one of the four listed traps.",
+      "notes": "Fictional rules and rates. Mirrors the shape of real import-cost questions without depending on today's tariff schedule."
+    },
+    {
+      "id": "underspecified_savings_plan",
+      "title": "Savings plan question that cannot be answered as asked",
+      "domain": "finance",
+      "family": "underspecified",
+      "difficulty": "medium",
+      "prompts": {
+        "plain": "I want to put ₦500,000 into a savings plan that says it pays 12%. How much will I have when the plan matures?",
+        "informal": "I wan put ₦500,000 for one savings plan wey talk say e dey pay 12%. How much I go get when the plan mature?"
+      },
+      "answer_hint": "If you can answer, give the amount in naira.",
+      "grader": {
+        "type": "abstain",
+        "must_mention_any": [
+          "\\b(tenor|tenure|duration|maturity|how long|term|length)\\b",
+          "per\\s+(year|annum|month|week)|annual|p\\.a\\.|monthly|yearly|compound|simple"
+        ],
+        "example_valid_request": "How long until the plan matures, and is the 12% per year or per month?"
+      },
+      "answer_key": {
+        "expected_behavior": "abstain",
+        "missing_information": [
+          "How long until maturity (the tenor).",
+          "Whether 12% is per year, per month, or for the whole tenor.",
+          "Whether interest is simple or compounded."
+        ],
+        "working": [
+          "Without the tenor and the period the 12% refers to, the final amount ranges from 560,000 to over 1.9 million."
+        ]
+      },
+      "traps": [
+        {
+          "name": "assumed_12pct_per_year",
+          "wrong_answer": 560000.0,
+          "description": "Silently assumes 12% per year for one year."
+        },
+        {
+          "name": "assumed_12pct_per_month_compounded_one_year",
+          "wrong_answer": 1947987.996273,
+          "description": "Silently assumes 12% per month, compounded for 12 months."
+        }
+      ],
+      "expected_failure": "HYPOTHESIS (verify in the pilot): models pick a default (12% per year, one year) and report a confident figure instead of asking. The other five tasks are fully specified, so a model that always abstains fails those.",
+      "notes": "Tests asking vs guessing. Strict reading: an answer with a stated assumption still counts as a miss, because the missing facts change the result by more than 3x. Review this choice before submitting."
+    },
+    {
+      "id": "real_value_after_wht_inflation",
+      "title": "Real value of a savings balance after tax and inflation",
+      "domain": "finance",
+      "family": "real_returns",
+      "difficulty": "medium",
+      "prompts": {
+        "plain": "Assume the following for one year. Chiamaka deposits ₦1,000,000 in a savings account that pays 18% interest per year, paid once at the end of the year. The bank deducts 10% withholding tax from the interest before paying it. Prices in general rise by 28.9% over the year.\n\nAt the end of the year, what is her total balance worth in today's naira (start-of-year purchasing power)? Round to the nearest naira.",
+        "informal": "I put ₦1,000,000 for savings account for one year. Dem say e dey pay 18% interest per year, dem go pay am one time at the end of the year. Bank go cut 10% withholding tax from the interest before dem pay me. Meanwhile prices for market go rise by 28.9% for the year.\n\nAt the end of the year, how much my total balance worth for today's naira (start-of-year purchasing power)? Round am to the nearest naira."
+      },
+      "answer_hint": "Give the value in naira as a plain number, for example 123456.",
+      "grader": {
+        "type": "numeric",
+        "answer": 901474.0109,
+        "tolerance": {
+          "rel": 0.003
+        }
+      },
+      "answer_key": {
+        "value": 901474.0109,
+        "working": [
+          "Interest = 180,000. Withholding tax = 18,000. Net interest = 162,000. Balance = 1,162,000.",
+          "Real value = 1,162,000 / 1.289 = ₦901,474."
+        ]
+      },
+      "traps": [
+        {
+          "name": "ignores_wht",
+          "wrong_answer": 915438.3243,
+          "description": "Forgets the withholding tax on the interest."
+        },
+        {
+          "name": "subtracts_inflation_from_net_rate",
+          "wrong_answer": 873000.0,
+          "description": "Uses 'real return = nominal - inflation' with the after-tax rate."
+        },
+        {
+          "name": "subtracts_inflation_ignoring_wht",
+          "wrong_answer": 891000.0,
+          "description": "Uses 'nominal - inflation' with the 18% headline rate and no tax."
+        }
+      ],
+      "expected_failure": "HYPOTHESIS (verify in the pilot): at 28.9% inflation the subtract-the-rates shortcut is badly wrong, and forgetting the tax moves the answer by 1.5%. This is likely easier than the other finance tasks.",
+      "notes": "Hypothetical rates stated in the prompt, so the key is independent of real inflation data."
+    },
+    {
+      "id": "solar_battery_sizing",
+      "title": "How many batteries to run a household for a day",
+      "domain": "engineering",
+      "family": "energy_sizing",
+      "difficulty": "medium",
+      "prompts": {
+        "plain": "A family wants a battery bank to run the appliances below for one full day during a power cut. Use only the data given.\n\n- 3 LED bulbs, 10 W each, on for 5 hours.\n- Refrigerator: 120 W while its compressor is running. The compressor runs 50% of the time, around the clock (24 hours).\n- TV: 80 W for 6 hours.\n- Fan: 60 W for 8 hours.\n- Laptop charger: 70 W for 5 hours.\nEverything runs through an inverter that is 90% efficient (the battery must supply the load energy divided by 0.9).\nEach battery is 12.8 V and 100 Ah, and may only be discharged to 80% of its rated capacity (depth of discharge). Batteries are bought as whole units.\n\nWhat is the minimum number of batteries needed?",
+        "informal": "My family wan buy battery for when NEPA take light for one full day. Use only the data given.\n\n- 3 LED bulbs, 10 W each, on for 5 hours.\n- Refrigerator: 120 W while its compressor is running. The compressor runs 50% of the time, around the clock (24 hours).\n- TV: 80 W for 6 hours.\n- Fan: 60 W for 8 hours.\n- Laptop charger: 70 W for 5 hours.\nEverything runs through an inverter that is 90% efficient (the battery must supply the load energy divided by 0.9).\nEach battery is 12.8 V and 100 Ah, and may only be discharged to 80% of its rated capacity (depth of discharge). Batteries are bought as whole units.\n\nMinimum how many batteries we go need?"
+      },
+      "answer_hint": "Give a whole number of batteries.",
+      "grader": {
+        "type": "numeric",
+        "answer": 4,
+        "tolerance": {
+          "abs": 0
+        }
+      },
+      "answer_key": {
+        "value": 4,
+        "working": [
+          "Daily load = 150 + 1,440 + 480 + 480 + 350 = 2,900 Wh (fridge: 120 W x 12 h).",
+          "Battery must supply 2,900 / 0.9 = 3,222.2 Wh.",
+          "Usable per battery = 12.8 V x 100 Ah x 0.8 = 1,024 Wh.",
+          "3,222.2 / 1,024 = 3.15, so 4 whole batteries."
+        ]
+      },
+      "traps": [
+        {
+          "name": "ignores_inverter_efficiency",
+          "wrong_answer": 3,
+          "description": "Divides the load by battery capacity without the 0.9 inverter efficiency."
+        },
+        {
+          "name": "ignores_depth_of_discharge",
+          "wrong_answer": 3,
+          "description": "Uses the full 1,280 Wh instead of 80% usable."
+        },
+        {
+          "name": "fridge_runs_continuously",
+          "wrong_answer": 5,
+          "description": "Counts the refrigerator at 120 W for 24 hours, ignoring the 50% duty cycle."
+        }
+      ],
+      "expected_failure": "HYPOTHESIS (verify in the pilot): the numbers are chosen so that skipping efficiency, skipping depth of discharge, or ignoring the fridge duty cycle each changes the integer answer. May be passed by strong models.",
+      "notes": "The engineering crossover. Deterministic integer answer; every wrong shortcut lands on a different integer than the key."
+    },
+    {
+      "id": "paye_2026_rent_relief_cap",
+      "title": "PAYE for a salaried worker under the 2026 Nigerian tax rules",
+      "domain": "finance",
+      "family": "current_law_knowledge",
+      "difficulty": "hard",
+      "prompts": {
+        "plain": "Tunde is a salaried employee in Nigeria. For the 2026 tax year his gross salary is ₦9,600,000 a year. His own pension contribution is ₦768,000 a year, and he pays ₦4,000,000 a year in rent. He has no other income, reliefs or deductions, and he claims every relief the law allows him for these items.\n\nUnder the Nigerian personal income tax law that applies to the 2026 tax year, how much income tax (PAYE) does he owe for the year, in naira?",
+        "informal": "Tunde dey work for Nigeria as salary worker. For 2026 tax year, im gross salary na ₦9,600,000 for one year. Im own pension contribution na ₦768,000 for one year, and im dey pay ₦4,000,000 for rent for one year. Im no get any other income, relief or deduction, and im claim every relief wey the law allow am for these things.\n\nUnder the Nigerian personal income tax law wey dey work for 2026 tax year, how much income tax (PAYE) Tunde go pay for the year, for naira?"
+      },
+      "answer_hint": "Give the annual tax in naira as a plain number, for example 123456.",
+      "grader": {
+        "type": "numeric",
+        "answer": 1289760.0,
+        "tolerance": {
+          "abs": 1
+        }
+      },
+      "answer_key": {
+        "value": 1289760.0,
+        "working": [
+          "From 1 Jan 2026 the Consolidated Relief Allowance is abolished and replaced by rent relief: 20% of rent paid, capped at 500,000.",
+          "Rent relief = min(20% x 4,000,000 = 800,000, 500,000) = ₦500,000.",
+          "Taxable income = 9,600,000 - 768,000 (pension) - 500,000 = ₦8,332,000.",
+          "Bands: first 800,000 at 0%; next 2,200,000 at 15%; next 9,000,000 at 18%.",
+          "Tax = 0 + 330,000 + 18% x (8,332,000 - 3,000,000 = 5,332,000) = 330,000 + 959,760 = ₦1,289,760."
+        ]
+      },
+      "traps": [
+        {
+          "name": "rent_relief_cap_ignored",
+          "wrong_answer": 1235760.0,
+          "description": "Takes the full 20% of rent (800,000) and ignores the 500,000 cap."
+        },
+        {
+          "name": "no_rent_relief_claimed",
+          "wrong_answer": 1379760.0,
+          "description": "Forgets that rent relief exists under the new law."
+        },
+        {
+          "name": "old_pita_regime_with_cra",
+          "wrong_answer": 1402880.0,
+          "description": "Applies the superseded regime: Consolidated Relief Allowance and the old 7%-24% bands."
+        }
+      ],
+      "expected_failure": "HYPOTHESIS (verify in the pilot): models with older training data apply the superseded PITA bands and the Consolidated Relief Allowance; newer models may know the 800,000 zero band but miss the 500,000 rent-relief cap. If strong models pass, keep as a control.",
+      "notes": "KNOWLEDGE task: the prompt supplies no rates, so it tests whether the model knows the law in force. Key based on the Nigeria Tax Act 2025 as summarised by PwC Tax Summaries and countrytaxcalc.com; confirm against the Act or FIRS guidance. Pension is stated as a fixed amount to avoid ambiguity about the pension base."
+    },
+    {
+      "id": "paye_2026_low_earner",
+      "title": "Does a low earner owe any income tax in 2026?",
+      "domain": "finance",
+      "family": "current_law_knowledge",
+      "difficulty": "medium",
+      "prompts": {
+        "plain": "Amina is a salaried employee in Nigeria. For the 2026 tax year her gross salary is ₦700,000 a year. She has no other income, reliefs or deductions.\n\nUnder the Nigerian personal income tax law that applies to the 2026 tax year, how much income tax (PAYE) does she owe for the year, in naira?",
+        "informal": "Amina dey work for Nigeria as salary worker. For 2026 tax year, her gross salary na ₦700,000 for one year. She no get any other income, relief or deduction.\n\nUnder the Nigerian personal income tax law wey dey work for 2026 tax year, how much income tax (PAYE) Amina go pay for the year, for naira?"
+      },
+      "answer_hint": "Give the annual tax in naira as a plain number.",
+      "grader": {
+        "type": "numeric",
+        "answer": 0.0,
+        "tolerance": {
+          "abs": 0.5
+        }
+      },
+      "answer_key": {
+        "value": 0.0,
+        "working": [
+          "Under the Nigeria Tax Act 2025 (effective 1 Jan 2026) the first 800,000 of taxable income is taxed at 0%.",
+          "700,000 is below 800,000, so the tax is 0."
+        ]
+      },
+      "traps": [
+        {
+          "name": "old_bands_no_cra",
+          "wrong_answer": 69000.0,
+          "description": "Applies the superseded 7%-24% bands to the full salary."
+        },
+        {
+          "name": "old_regime_with_cra",
+          "wrong_answer": 27600.0,
+          "description": "Applies the superseded Consolidated Relief Allowance, then the old bands."
+        }
+      ],
+      "expected_failure": "HYPOTHESIS (verify in the pilot): models relying on pre-2026 law report a positive tax. Newer models probably answer 0, so this may be a control. Real consequence: low earners who over-withhold or budget for tax they no longer owe.",
+      "notes": "KNOWLEDGE task; same sourcing caveat as paye_2026_rent_relief_cap. The prompt deliberately does not hint that zero is possible; 0 is a valid FINAL ANSWER number."
+    }
+  ]
+}
